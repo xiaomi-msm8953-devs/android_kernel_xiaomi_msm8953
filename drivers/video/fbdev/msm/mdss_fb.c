@@ -46,6 +46,9 @@
 #include <linux/file.h>
 #include <linux/kthread.h>
 #include <linux/dma-buf.h>
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+#include <linux/mdss_io_util.h>
+#endif
 #include "mdss_fb.h"
 #include "mdss_mdp_splash_logo.h"
 #define CREATE_TRACE_POINTS
@@ -2209,6 +2212,17 @@ static int mdss_fb_blank(int blank_mode, struct fb_info *info)
 	s64 actual_time;
 
 	start = ktime_get();
+
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+	if ((info == prim_fbi) && (blank_mode == FB_BLANK_UNBLANK) &&
+		atomic_read(&prim_panel_is_on)) {
+		atomic_set(&prim_panel_is_on, false);
+		__pm_relax(&prim_panel_wakelock);
+		cancel_delayed_work_sync(&prim_panel_work);
+		return 0;
+	}
+#endif
+
 	ret = mdss_fb_pan_idle(mfd);
 	if (ret) {
 		pr_warn("mdss_fb_pan_idle for fb%d failed. ret=%d\n",
@@ -2899,6 +2913,15 @@ static int mdss_fb_register(struct msm_fb_data_type *mfd)
 	mdss_panel_debugfs_init(panel_info, panel_name);
 	pr_info("FrameBuffer[%d] %dx%d registered successfully!\n", mfd->index,
 					fbi->var.xres, fbi->var.yres);
+
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+	if (panel_info->is_prim_panel) {
+		prim_fbi = fbi;
+		atomic_set(&prim_panel_is_on, false);
+		INIT_DELAYED_WORK(&prim_panel_work, prim_panel_off_delayed_work);
+		wakeup_source_init(&prim_panel_wakelock, "prim_panel_wakelock");
+	}
+#endif
 
 	return 0;
 }

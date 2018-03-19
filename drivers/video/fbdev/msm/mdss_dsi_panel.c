@@ -184,8 +184,13 @@ static void mdss_dsi_panel_apply_settings(struct mdss_dsi_ctrl_pdata *ctrl,
 	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
 }
 
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
+			struct dsi_panel_cmds *pcmds, u32 flags)
+#else
 static void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 			struct dsi_panel_cmds *pcmds, u32 flags)
+#endif
 {
 	struct dcs_cmd_req cmdreq;
 	struct mdss_panel_info *pinfo;
@@ -361,6 +366,10 @@ disp_en_gpio_err:
 	return rc;
 }
 
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+extern int ft8716_suspend;
+extern int panel_suspend_reset_flag;
+#endif
 int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -522,7 +531,24 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			usleep_range(100, 110);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+		if (panel_suspend_reset_flag == 2 || (panel_suspend_reset_flag == 3 && ft8716_gesture_func_on == 0)
+			|| ft8716_suspend) {
+			gpio_set_value((ctrl_pdata->rst_gpio), 1);
+			mdelay(10);
+			gpio_set_value((ctrl_pdata->rst_gpio), 0);
+			mdelay(10);
+			gpio_set_value((ctrl_pdata->rst_gpio), 1);
+			mdelay(10);
+			gpio_set_value((ctrl_pdata->rst_gpio), 0);
+			mdelay(10);
+		} else {
+			gpio_set_value((ctrl_pdata->rst_gpio), 0);
+		}
+#else
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+#endif
+
 		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->mode_gpio))
 			gpio_free(ctrl_pdata->mode_gpio);
