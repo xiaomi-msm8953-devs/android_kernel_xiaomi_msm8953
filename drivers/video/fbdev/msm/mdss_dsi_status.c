@@ -31,12 +31,21 @@
 #include "mdss_panel.h"
 #include "mdss_mdp.h"
 
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+#define STATUS_CHECK_INTERVAL_MS 1000
+#else
 #define STATUS_CHECK_INTERVAL_MS 5000
+#endif
 #define STATUS_CHECK_INTERVAL_MIN_MS 50
 #define DSI_STATUS_CHECK_INIT -1
 #define DSI_STATUS_CHECK_DISABLE 1
 
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+uint32_t ESD_interval = STATUS_CHECK_INTERVAL_MS;
+#define interval ESD_interval
+#else
 static uint32_t interval = STATUS_CHECK_INTERVAL_MS;
+#endif
 static int32_t dsi_status_disable = DSI_STATUS_CHECK_INIT;
 struct dsi_status_data *pstatus_data;
 

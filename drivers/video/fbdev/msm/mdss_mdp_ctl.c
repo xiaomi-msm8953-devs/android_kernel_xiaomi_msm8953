@@ -4458,8 +4458,13 @@ void mdss_mdp_check_ctl_reset_status(struct mdss_mdp_ctl *ctl)
 		return;
 
 	pr_debug("hw ctl reset is set for ctl:%d\n", ctl->num);
+#ifdef CONFIG_MACH_XIAOMI_YSL
+	/* poll for at least ~2 frame */
+	status = mdss_mdp_poll_ctl_reset_status(ctl, 640);
+#else
 	/* poll for at least ~1 frame */
 	status = mdss_mdp_poll_ctl_reset_status(ctl, 320);
+#endif
 	if (status) {
 		pr_err("hw recovery is not complete for ctl:%d status:0x%x\n",
 			ctl->num, status);
