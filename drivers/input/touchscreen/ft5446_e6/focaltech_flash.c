@@ -449,7 +449,7 @@ int fts_GetFirmwareSize(char *firmware_name)
 		FTS_ERROR("error occured while opening file %s", filepath);
 		return -EIO;
 	}
-	inode = pfile->f_dentry->d_inode;
+	inode = pfile->f_path.dentry->d_inode;
 	magic = inode->i_sb->s_magic;
 	fsize = inode->i_size;
 	filp_close(pfile, NULL);
@@ -484,7 +484,7 @@ int fts_ReadFirmware(char *firmware_name, u8 *firmware_buf)
 		FTS_ERROR("[UPGRADE] Error occured while opening file %s.\n", filepath);
 		return -EIO;
 	}
-	inode = pfile->f_dentry->d_inode;
+	inode = pfile->f_path.dentry->d_inode;
 	magic = inode->i_sb->s_magic;
 	fsize = inode->i_size;
 	old_fs = get_fs();
