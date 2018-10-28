@@ -25,7 +25,6 @@
 #include <linux/proc_fs.h>
 #include <asm/uaccess.h>
 #include <linux/input/mt.h>
-#include <linux/wakelock.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
 
@@ -927,7 +926,7 @@ static int32_t nvt_flash_proc_init(void)
 #if WAKEUP_GESTURE
 
 
-static struct wake_lock gestrue_wakelock;
+static struct wakeup_source gestrue_wakelock;
 
 /*******************************************************
 Description:
@@ -1262,7 +1261,7 @@ static irqreturn_t nvt_ts_irq_handler(int32_t irq, void *dev_id)
 
 #if WAKEUP_GESTURE
 	if (bTouchIsAwake == 0) {
-		wake_lock_timeout(&gestrue_wakelock, msecs_to_jiffies(5000));
+		__pm_wakeup_event(&gestrue_wakelock, 5000);
 	}
 #endif
 
@@ -1470,7 +1469,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	for (retry = 0; retry < (sizeof(gesture_key_array) / sizeof(gesture_key_array[0])); retry++) {
 		input_set_capability(ts->input_dev, EV_KEY, gesture_key_array[retry]);
 	}
-	wake_lock_init(&gestrue_wakelock, WAKE_LOCK_SUSPEND, "poll-wake-lock");
+	wakeup_source_init(&gestrue_wakelock, "poll-wake-lock");
 	/*add by zmc 20170923*/
 	ts->input_dev->event = NVT_gesture_switch;
 
