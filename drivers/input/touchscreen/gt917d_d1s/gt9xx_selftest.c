@@ -2165,7 +2165,7 @@ static ssize_t gt9xx_tp_selftest_write(struct file *file, const char __user *buf
 				       size_t count, loff_t *pos)
 {
 	char tmp[6];
-	int retval;
+	int retval = 0;
 	struct goodix_ts_data *ts = NULL;
 
 	if (!i2c_connect_client || count > sizeof(tmp)) {
