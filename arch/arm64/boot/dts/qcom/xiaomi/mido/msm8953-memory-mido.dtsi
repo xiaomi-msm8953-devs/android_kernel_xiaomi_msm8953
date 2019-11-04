@@ -26,3 +26,9 @@
 		};
 	};
 };
+
+&soc {
+	restart@4ab000 {
+		qcom,force-warm-reboot;
+	};
+};

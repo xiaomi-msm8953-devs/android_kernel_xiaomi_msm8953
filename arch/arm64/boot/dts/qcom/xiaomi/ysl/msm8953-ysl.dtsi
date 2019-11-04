@@ -178,6 +178,10 @@
 		vdd_ana-supply = <&pm8953_l6>;
 
 	};
+
+        restart@4ab000 {
+                qcom,force-warm-reboot;
+        };
 };
 
 &pm8953_vadc {
