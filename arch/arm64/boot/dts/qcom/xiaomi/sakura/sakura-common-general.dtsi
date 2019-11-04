@@ -113,4 +113,8 @@
 					0x9F 0x1C
 					0x00 0x18>;
 	};
+
+        restart@4ab000 {
+                qcom,force-warm-reboot;
+        };
 };
