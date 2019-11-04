@@ -127,6 +127,9 @@
 		extcon = <&qpnp_smbcharger>;
 	};
 
+        restart@4ab000 {
+                qcom,force-warm-reboot;
+        };
 };
 
 &spmi_bus {
