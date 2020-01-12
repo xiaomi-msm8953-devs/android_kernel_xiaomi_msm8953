@@ -14,6 +14,9 @@ static char module_name[80] = {0x00};
 
 int lct_tp_register_flag = 0;
 
+static bool init_android_tp = false;
+static bool init_tp_info = false;
+
 static ssize_t msm_tp_module_id_show(struct device *dev,
         struct device_attribute *attr, char *buf)
 {
@@ -23,18 +26,16 @@ static ssize_t msm_tp_module_id_show(struct device *dev,
     if((0 == tp_ver_show) && (0 == strlen(tp_ver_show_str)))
         strcpy(tp_version, "no tp");
     else
-    {
         sprintf(tp_version, "[Vendor]%s,%s\n", (strlen(module_name) ? module_name : "Unknown"),
                 (strlen(tp_ver_show_str) ? tp_ver_show_str : "Unknown product"));
-    }
 
     sprintf(buf, "%s\n", tp_version);
     rc = strlen(buf) + 1;
 
     return rc;
 }
-
 static DEVICE_ATTR(tp_info, 0444, msm_tp_module_id_show, NULL);
+
 static int tp_fm_creat_sys_entry(void)
 {
     int32_t rc = 0;
@@ -43,15 +44,17 @@ static int tp_fm_creat_sys_entry(void)
     if (msm_tp_device == NULL) {
         pr_info("%s: subsystem_register failed\n", __func__);
         rc = -ENOMEM;
-        return rc ;
+        return rc;
     }
 
     rc = sysfs_create_file(msm_tp_device, &dev_attr_tp_info.attr);
     if (rc) {
         pr_info("%s: sysfs_create_file failed\n", __func__);
         kobject_del(msm_tp_device);
+        return rc;
     }
 
+    init_android_tp = true;
     return 0 ;
 }
 
@@ -65,16 +68,14 @@ static ssize_t tp_proc_tp_info_read(struct file *file, char __user *buf, size_t 
     if((0 == strlen(module_name)) && (0 == tp_ver_show) && (0 == strlen(tp_ver_show_str)))
         cnt = sprintf(page, "no tp\n");
     else
-    {
-
         cnt = sprintf(page, "[Vendor]%s,%s\n", (strlen(module_name) ? module_name : "Unknown"),
                 (strlen(tp_ver_show_str) ? tp_ver_show_str : "Unknown product"));
-    }
 
     cnt = simple_read_from_buffer(buf, size, ppos, page, cnt);
 
+    if (page != NULL)
+        kfree(page);
 
-    kfree(page);
     return cnt;
 }
 
@@ -84,14 +85,15 @@ static const struct file_operations tp_proc_tp_info_fops = {
 
 static int tp_fm_creat_proc_entry(void)
 {
-    struct proc_dir_entry *proc_entry_tp;
+	struct proc_dir_entry *proc_entry_tp;
 
     proc_entry_tp = proc_create_data("tp_info", 0444, NULL, &tp_proc_tp_info_fops, NULL);
-    if (IS_ERR_OR_NULL(proc_entry_tp))
-    {
+    if (IS_ERR_OR_NULL(proc_entry_tp)) {
         pr_err("add /proc/tp_info error \n");
+        return 0;
     }
 
+    init_tp_info = true;
     return 0;
 }
 
@@ -101,11 +103,15 @@ int init_tp_fm_info(u16 version_info_num, char* version_info_str, char *name)
 
     if (NULL != version_info_str)
         strcpy(tp_ver_show_str, version_info_str);
+
     if (NULL != name)
         strcpy(module_name, name);
 
-    tp_fm_creat_sys_entry();
-    tp_fm_creat_proc_entry();
+    if (!init_android_tp)
+        tp_fm_creat_sys_entry();
+
+    if (!init_tp_info)
+        tp_fm_creat_proc_entry();
 
     return 0;
 }
