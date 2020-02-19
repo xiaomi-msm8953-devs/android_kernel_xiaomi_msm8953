@@ -1455,6 +1455,15 @@ config TOUCHSCREEN_RAYDIUM_CHIPSET
 # common
 source "drivers/input/touchscreen/ft5435_mi/Kconfig"
 
+config TOUCHSCREEN_COMMON
+	bool "Common touchscreen interface to interact with userspace"
+	default n
+	help
+	  Say Y here if you want to control touchpanel features via
+	  /sys/touchpanel.
+
+	  If unsure, say N.
+
 # sakura
 source "drivers/input/touchscreen/ft5446_d1s/Kconfig"
 source "drivers/input/touchscreen/gt917d_d1s/Kconfig"
