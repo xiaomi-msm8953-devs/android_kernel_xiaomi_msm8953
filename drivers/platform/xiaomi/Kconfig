@@ -1,0 +1,28 @@
+# Xiaomi configuration options
+
+config MACH_XIAOMI_MSM8953
+	bool "Xiaomi MSM8953 devices"
+	help
+	  Support for Xiaomi MSM8953 variants
+
+menu "Xiaomi MSM8953 board selection"
+
+config MACH_XIAOMI_MIDO
+        bool "xiaomi mido board"
+        select MACH_XIAOMI_MSM8953
+        help
+          Support for Xiaomi Redmi Note 4
+
+config MACH_XIAOMI_TISSOT
+        bool "xiaomi tissot board"
+        select MACH_XIAOMI_MSM8953
+        help
+          Support for Xiaomi Mi A1
+
+config MACH_XIAOMI_VINCE
+        bool "xiaomi vince board"
+        select MACH_XIAOMI_MSM8953
+        help
+          Support for Xiaomi Redmi 5 Plus
+
+endmenu
