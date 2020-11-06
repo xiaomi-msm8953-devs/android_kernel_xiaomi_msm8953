@@ -81,8 +81,10 @@ int g_show_log = 0;
 char g_sz_debug[1024] = {0};
 #endif
 
+#if 0
 extern bool g_charger_present;
 int charging_flag = 0;
+#endif
 
 /*****************************************************************************
 * Static function prototypes
@@ -866,7 +868,7 @@ static irqreturn_t fts_ts_interrupt(int irq, void *dev_id)
 		return IRQ_HANDLED;
 	}
 
-
+#if 0
 	if(g_charger_present && (charging_flag == 0))
 	{
 		charging_flag = 1;
@@ -880,6 +882,7 @@ static irqreturn_t fts_ts_interrupt(int irq, void *dev_id)
 			fts_i2c_write_reg(fts_wq_data->client, 0x8B, 0x00);
 		}
 	}
+#endif
 
 	#if FTS_ESDCHECK_EN
 	fts_esdcheck_set_intr(1);
@@ -1675,6 +1678,7 @@ static int fts_ts_resume(struct device *dev)
 	}*/
 
 	fts_release_all_finger();
+#if 0
 	if(g_charger_present)
 	{
 		charging_flag = 0;
@@ -1683,6 +1687,7 @@ static int fts_ts_resume(struct device *dev)
 	{
 		charging_flag = 1;
 	}
+#endif
 
 	#if (!FTS_CHIP_IDC)
 	fts_reset_proc(200);
