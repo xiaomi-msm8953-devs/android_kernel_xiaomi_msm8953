@@ -133,7 +133,7 @@ bool synaptics_gesture_func_on_lansi = 1;
 #define WAKEUP_OFF 4
 #define WAKEUP_ON 5
 
-#if ((defined CONFIG_PM)&&(defined CONFIG_ENABLE_PM_TP_SUSPEND_RESUME))
+#ifdef CONFIG_PM
 extern bool lcm_ffbm_mode;
 #endif
 
@@ -4735,7 +4735,7 @@ exit:
 }
 #endif
 
-#if ((defined CONFIG_PM)&&(defined CONFIG_ENABLE_PM_TP_SUSPEND_RESUME))
+#ifdef CONFIG_PM
 static int synaptics_rmi4_pm_suspend(struct device *dev){
 	dev_info(rmi4_data->pdev->dev.parent, "Enter %s\n",__func__);
 	if(lcm_ffbm_mode){
@@ -4883,7 +4883,7 @@ exit:
 	return 0;
 }
 
-#if ((defined CONFIG_PM)&&(defined CONFIG_ENABLE_PM_TP_SUSPEND_RESUME))
+#ifdef CONFIG_PM
 static const struct dev_pm_ops synaptics_rmi4_dev_pm_ops = {
 
 	.suspend = synaptics_rmi4_pm_suspend,
