@@ -41,7 +41,7 @@
 #endif
 
 /*Add by HQ-zmc [Date: 2017-12-18 11:34:22]*/
-#include "../../../video/msm/mdss/mdss_dsi.h"
+#include "../../../video/fbdev/msm/mdss_dsi.h"
 
 #if NVT_TOUCH_ESD_PROTECT
 static struct delayed_work nvt_esd_check_work;
