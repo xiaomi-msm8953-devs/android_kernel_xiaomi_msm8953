@@ -1452,4 +1452,17 @@ config TOUCHSCREEN_RAYDIUM_CHIPSET
 
 	  If unsure, say N.
 
+# common
+source "drivers/input/touchscreen/ft5435_mi/Kconfig"
+
+# tissot
+source "drivers/input/touchscreen/ft8716_d2/Kconfig"
+source "drivers/input/touchscreen/td4310_d2/Kconfig"
+
+# vince
+source "drivers/input/touchscreen/nt36672_e7/Kconfig"
+source "drivers/input/touchscreen/td4310_e7/Kconfig"
+source "drivers/input/touchscreen/td4310_lansi_e7/Kconfig"
+source "drivers/input/touchscreen/vituralsar_e7/Kconfig"
+
 endif
