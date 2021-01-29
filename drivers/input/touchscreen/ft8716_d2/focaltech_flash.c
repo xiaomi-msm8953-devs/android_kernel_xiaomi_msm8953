@@ -512,7 +512,6 @@ static int fts_ctpm_check_vendorid_fw(struct i2c_client *client)
 #if FTS_AUTO_UPGRADE_EN
 
 extern char TP_vendor;
-static char tp_info_summary[80] = "";
 #endif
  static int fts_ctpm_check_fw_ver(struct i2c_client *client)
 {
@@ -647,7 +646,6 @@ extern char ftp_lockdown_info[128];
 static void fts_ctpm_update_work_func(struct work_struct *work)
 {
 	int i_ret = 0;
-	char tp_temp_info[80];
 
 #if FTS_LOCK_DOWN_INFO
 	unsigned char auc_i2c_write_buf[10];
@@ -678,17 +676,6 @@ static void fts_ctpm_update_work_func(struct work_struct *work)
 	fts_i2c_read_reg(fts_i2c_client, FTS_REG_FW_VER, &fw_ver);
 
 	printk("fw_ver: %d",  fw_ver);
-
-	if (TP_vendor == 1) {
-		strcpy(tp_info_summary, "[Vendor]Sharp, [IC]FT8716, [FW]Ver");
-	} else if (TP_vendor == 2) {
-		 strcpy(tp_info_summary, "[Vendor]Eggb, [IC]FT8716, [FW]Ver");
-	} else{
-		strcpy(tp_info_summary, "[Vendor]Unknown, [IC]FT8716, [FW]Ver");
-	}
-	sprintf(tp_temp_info, "%d", fw_ver);
-		strcat(tp_info_summary, tp_temp_info);
-	strcat(tp_info_summary, "\0");
 
 #ifdef FTS_LOCK_DOWN_INFO
 

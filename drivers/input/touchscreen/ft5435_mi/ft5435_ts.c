@@ -3644,8 +3644,6 @@ static void ft5x0x_release_apk_debug_channel(void)
 }
 #endif
 
-static char tp_info_summary[80] = "";
-
 static int ft5435_ts_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
@@ -3659,7 +3657,6 @@ static int ft5435_ts_probe(struct i2c_client *client,
 	u8 w_buf[FT_MAX_WR_BUF] = {0};
 	int i;
 	int retry = 3;
-	char tp_temp_info[80];
 	printk("~~~~~ ft5435_ts_probe start\n");
 
 #if defined(CONFIG_FB)
@@ -4100,16 +4097,6 @@ g_ft5435_ts_data = data;
 	ft5435_i2c_write(client, w_buf, 1);
 	init_ok = 1;
 	wakeup_source_init(&ft5436_wakelock, "ft5436");
-	if (fts_fw_vendor_id == FTS_VENDOR_1) {
-		strcpy(tp_info_summary, "[Vendor]Biel, [IC]FT5435, [FW]Ver");
-	} else if (fts_fw_vendor_id == FTS_VENDOR_2) {
-		strcpy(tp_info_summary, "[Vendor]Ofilm, [IC]FT5435, [FW]Ver");
-	} else{
-		strcpy(tp_info_summary, "[Vendor]Unknown, [IC]FT5435, [FW]Ver");
-	}
-	sprintf(tp_temp_info, "%d", data->fw_ver[0]);
-	strcat(tp_info_summary, tp_temp_info);
-	strcat(tp_info_summary, "\0");
 	printk("~~~~~ ft5435_ts_probe end\n");
 	return 0;
 

@@ -44,7 +44,6 @@
 #include <synaptics_dsx.h>
 #include "synaptics_dsx_core.h"
 #include <linux/proc_fs.h>
-#include <linux/hqsysfs.h>
 
 
 #define FW_IHEX_NAME "synaptics/startup_fw_update_lansi.bin"
@@ -4476,7 +4475,6 @@ exit:
 
 	return retval;
 }
-static char tp_info_summary[80]="";
 
 static int fwu_start_reflash(void)
 {
@@ -4486,8 +4484,6 @@ static int fwu_start_reflash(void)
 	const struct firmware *fw_entry = NULL;
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
 	unsigned char config_ver[20]={0};
-
-	char tp_temp_info[80];
 
 	if (rmi4_data->sensor_sleep) {
 		dev_err(rmi4_data->pdev->dev.parent,
@@ -4706,13 +4702,6 @@ exit:
 			config_ver,
 			1);
 	printk("config_ver info =%02x\n",config_ver[0]);
-
-
-	strcpy(tp_info_summary,"[Vendor]Lansi,[IC]TD4310(synaptics),[FW]Ver");
-	sprintf(tp_temp_info, "%02x",config_ver[0]);
-	strcat(tp_info_summary,tp_temp_info);
-	strcat(tp_info_summary,"\0");
-	hq_regiser_hw_info(HWID_CTP,tp_info_summary);
 
 	rmi4_data->stay_awake = false;
 
