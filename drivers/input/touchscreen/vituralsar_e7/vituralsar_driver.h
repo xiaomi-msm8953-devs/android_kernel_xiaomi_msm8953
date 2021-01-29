@@ -13,7 +13,7 @@
 #include <linux/gpio_keys.h>
 #include <linux/proc_fs.h>
 #include <linux/of_gpio.h>
-#include <asm/gpio.h>
+#include <asm-generic/gpio.h>
 #include <linux/input.h>
 
 /*******************************************************************************
