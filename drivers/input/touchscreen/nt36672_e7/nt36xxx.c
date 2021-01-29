@@ -28,7 +28,6 @@
 #include <linux/wakelock.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
-#include <linux/hqsysfs.h>
 
 #if defined(CONFIG_FB)
 #include <linux/notifier.h>
@@ -769,17 +768,6 @@ int32_t nvt_get_xiaomi_lockdown_info(void)
 	return ret;
 }
 
-static char tp_info_summary[80]="";
-static void nvt_register_hw_info(void)
-{
-	char tp_temp_info[80];
-
-	strcpy(tp_info_summary,"[Vendor]CSOT,[IC]NT36672(Novatek),[FW]Ver");
-	sprintf(tp_temp_info, "%02x",ts->fw_ver);
-	strcat(tp_info_summary,tp_temp_info);
-	strcat(tp_info_summary,"\0");
-	hq_regiser_hw_info(HWID_CTP,tp_info_summary);
-}
 /*******************************************************
   Create Device Node (Proc Entry)
 *******************************************************/
@@ -1593,7 +1581,6 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	mutex_unlock(&ts->lock);
 
 	mutex_lock(&ts->lock);
-	nvt_register_hw_info();
 	mutex_unlock(&ts->lock);
 
 	enable_irq(client->irq);
