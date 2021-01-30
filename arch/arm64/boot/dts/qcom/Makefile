@@ -531,6 +531,7 @@ sdm429-bg-wdp-overlay.dtbo-base := sdm429-bg-wdp.dtb
 sda429-bg-wdp-overlay.dtbo-base := sda429-bg-wdp.dtb
 else
 ifeq ($(CONFIG_MACH_XIAOMI_MSM8953),y)
+dtb-$(CONFIG_MACH_XIAOMI_MIDO) += msm8953-qrd-sku3-mido.dtb
 dtb-$(CONFIG_MACH_XIAOMI_TISSOT) += msm8953-qrd-sku3-tissot.dtb
 dtb-$(CONFIG_MACH_XIAOMI_VINCE) += msm8953-qrd-sku3-vince.dtb
 else
