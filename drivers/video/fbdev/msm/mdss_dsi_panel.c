@@ -370,6 +370,9 @@ disp_en_gpio_err:
 extern int ft8716_suspend;
 extern int panel_suspend_reset_flag;
 #endif
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+extern bool pullDownReset;
+#endif
 int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -543,6 +546,11 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_set_value((ctrl_pdata->rst_gpio), 0);
 			mdelay(10);
 		} else {
+			gpio_set_value((ctrl_pdata->rst_gpio), 0);
+		}
+#elif defined(CONFIG_MACH_XIAOMI_VINCE)
+		if (pullDownReset) {
+			pr_err("%s: pull down reset pin\n", __func__);
 			gpio_set_value((ctrl_pdata->rst_gpio), 0);
 		}
 #else
@@ -2050,6 +2058,10 @@ static void mdss_dsi_parse_esd_params(struct device_node *np,
 			ctrl->status_mode = ESD_REG;
 			ctrl->check_read_status =
 				mdss_dsi_gen_read_status;
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+		} else if (!strcmp(string, "TE_check_NT35596")) {
+			ctrl->status_mode = ESD_TE_NT35596;
+#endif
 		} else if (!strcmp(string, "reg_read_nt35596")) {
 			ctrl->status_mode = ESD_REG_NT35596;
 			ctrl->status_error_count = 0;

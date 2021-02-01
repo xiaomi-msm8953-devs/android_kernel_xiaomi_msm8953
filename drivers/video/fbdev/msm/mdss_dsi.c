@@ -35,6 +35,9 @@
 #include "mdss_debug.h"
 #include "mdss_dsi_phy.h"
 #include "mdss_dba_utils.h"
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+#include <linux/delay.h>
+#endif
 
 #define XO_CLK_RATE	19200000
 #define CMDLINE_DSI_CTL_NUM_STRING_LEN 2
@@ -44,6 +47,24 @@ static struct mdss_dsi_data *mdss_dsi_res;
 
 #define DSI_DISABLE_PC_LATENCY 100
 #define DSI_ENABLE_PC_LATENCY PM_QOS_DEFAULT_VALUE
+
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+/*A flag to indicate ffbm mode or not*/
+bool lcm_ffbm_mode = 0;
+
+struct mdss_dsi_ctrl_pdata *change_par_ctrl;
+
+static struct NVT_CSOT_ESD nvt_csot_esd = {
+	.nova_csot_panel = false,
+	.ESD_TE_status = false
+};
+
+struct NVT_CSOT_ESD *get_nvt_csot_esd_status(void){
+	return &nvt_csot_esd;
+}
+
+bool vspn_power_state = false;
+#endif
 
 static struct pm_qos_request mdss_dsi_pm_qos_request;
 
@@ -373,7 +394,71 @@ extern int ft8716_suspend;
 extern int ft8716_gesture_func_on;
 int acc_vreg = 0;
 #endif
-#ifdef CONFIG_MACH_XIAOMI_TISSOT
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+static int nova_esd_2fingers_rst(struct mdss_panel_data *pdata){
+	int ret = 0;
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
+	if (pdata == NULL) {
+		pr_err("%s: Invalid input data\n", __func__);
+		ret = -EINVAL;
+		goto end;
+	}
+	printk("[zmc] %s\n",__func__);
+	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
+				panel_data);
+	if (mdss_dsi_pinctrl_set_state(ctrl_pdata, true))
+		pr_debug("reset enable: pinctrl not enabled\n");
+	ret = mdss_dsi_panel_reset(pdata, 1);
+	if (ret)
+		pr_err("%s: Panel reset failed. rc=%d\n",
+				__func__, ret);
+	ret = mdss_dsi_panel_reset(pdata, 0);
+	msleep(30);
+	if (mdss_dsi_pinctrl_set_state(ctrl_pdata, true))
+		pr_debug("reset enable: pinctrl not enabled\n");
+	ret = mdss_dsi_panel_reset(pdata, 1);
+	if (ret)
+		pr_err("%s: Panel reset failed. rc=%d\n",
+				__func__, ret);
+		ret = mdss_dsi_panel_reset(pdata, 0);
+end:
+	return ret;
+}
+static int nova_esd_recovery(struct mdss_panel_data *pdata){
+	int ret = 0;
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
+	/*Add by HQ-zmc [Date: 2017-12-18 11:16:00]*/
+	struct NVT_CSOT_ESD *nvt_csot_esd_status = get_nvt_csot_esd_status();
+	if (nvt_csot_esd_status->ESD_TE_status){
+		if (pdata == NULL) {
+			pr_err("%s: Invalid input data\n", __func__);
+			ret = -EINVAL;
+			goto end;
+		}
+		ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
+					panel_data);
+		printk("[zmc] %s: vspn_power_state = %d\n",__func__,vspn_power_state);
+		ret = msm_mdss_enable_vreg(
+					ctrl_pdata->panel_power_data.vreg_config,
+					ctrl_pdata->panel_power_data.num_vreg, 0);
+			if (ret)
+				pr_err("%s: failed to disable vregs for %s\n",
+					__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
+		vspn_power_state = false;
+		printk("[zmc] nova_csot_panel delay 1000ms");
+		msleep(50);
+		ret = nova_esd_2fingers_rst(pdata);
+		msleep(500);
+		ret = nova_esd_2fingers_rst(pdata);
+		msleep(10);
+		nvt_csot_esd_status->ESD_TE_status = false;
+	}
+end:
+	return ret;
+}
+#endif
+
+#if defined(CONFIG_MACH_XIAOMI_TISSOT) || defined(CONFIG_MACH_XIAOMI_VINCE)
 int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 #else
 static int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
@@ -381,6 +466,10 @@ static int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 {
 	int ret = 0;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
+
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	struct NVT_CSOT_ESD *nvt_csot_esd_status = get_nvt_csot_esd_status();
+#endif
 
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
@@ -405,6 +494,10 @@ static int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 					__func__);
 	}
 
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+ 	usleep_range(1000,1000); 
+#endif
+
 	if (mdss_dsi_pinctrl_set_state(ctrl_pdata, false))
 		pr_debug("reset disable: pinctrl not enabled\n");
 
@@ -427,6 +520,24 @@ static int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 				pr_err("%s: failed to disable vregs for %s\n",
 					 __func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
 		}
+	}
+#elif defined(CONFIG_MACH_XIAOMI_VINCE)
+	if ((!synaptics_gesture_func_on) || (!synaptics_gesture_func_on_lansi) || (!NVT_gesture_func_on)){
+		if (nvt_csot_esd_status->nova_csot_panel && nvt_csot_esd_status->ESD_TE_status){
+			ret = nova_esd_recovery(pdata);
+		} else {
+			if (vspn_power_state) {
+				ret = msm_mdss_enable_vreg(
+					ctrl_pdata->panel_power_data.vreg_config,
+					ctrl_pdata->panel_power_data.num_vreg, 0);
+				if (ret)
+					pr_err("%s: failed to disable vregs for %s\n",
+						__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
+				vspn_power_state = false;
+			}
+		}
+	} else if (nvt_csot_esd_status->nova_csot_panel && nvt_csot_esd_status->ESD_TE_status) {
+		ret = nova_esd_recovery(pdata);
 	}
 
 #else
@@ -467,6 +578,9 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 #ifdef CONFIG_MACH_XIAOMI_TISSOT
 	if (!acc_vreg) {
 #endif
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	if (!vspn_power_state) {
+#endif
 	ret = msm_mdss_enable_vreg(
 		ctrl_pdata->panel_power_data.vreg_config,
 		ctrl_pdata->panel_power_data.num_vreg, 1);
@@ -478,7 +592,12 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
 		return ret;
 	}
-#ifdef CONFIG_MACH_XIAOMI_TISSOT
+
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	vspn_power_state = true;
+#endif
+
+#if defined(CONFIG_MACH_XIAOMI_TISSOT) || defined(CONFIG_MACH_XIAOMI_VINCE)
 	}
 #endif
 
@@ -1788,6 +1907,10 @@ static int mdss_dsi_unblank(struct mdss_panel_data *pdata)
 	if ((pdata->panel_info.type == MIPI_CMD_PANEL) &&
 		mipi->vsync_enable && mipi->hw_vsync_mode) {
 		mdss_dsi_set_tear_on(ctrl_pdata);
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+		if (mdss_dsi_is_te_based_esd(ctrl_pdata))
+			enable_irq(gpio_to_irq(ctrl_pdata->disp_te_gpio));
+#endif
 	}
 
 	ctrl_pdata->ctrl_state |= CTRL_STATE_PANEL_INIT;
@@ -1857,6 +1980,13 @@ static int mdss_dsi_blank(struct mdss_panel_data *pdata, int power_state)
 
 	if ((pdata->panel_info.type == MIPI_CMD_PANEL) &&
 		mipi->vsync_enable && mipi->hw_vsync_mode) {
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+		if (mdss_dsi_is_te_based_esd(ctrl_pdata)) {
+				disable_irq(gpio_to_irq(
+					ctrl_pdata->disp_te_gpio));
+				atomic_dec(&ctrl_pdata->te_irq_ready);
+		}
+#endif
 		mdss_dsi_set_tear_off(ctrl_pdata);
 	}
 
@@ -2957,6 +3087,10 @@ static struct device_node *mdss_dsi_pref_prim_panel(
 	return dsi_pan_node;
 }
 
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+extern uint32_t ESD_interval;
+#endif
+
 /**
  * mdss_dsi_find_panel_of_node(): find device node of dsi panel
  * @pdev: platform_device of the dsi ctrl node
@@ -2983,6 +3117,9 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 	struct device_node *dsi_pan_node = NULL, *mdss_node = NULL;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = platform_get_drvdata(pdev);
 	struct mdss_panel_info *pinfo = &ctrl_pdata->panel_data.panel_info;
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	struct NVT_CSOT_ESD *nvt_csot_esd_status = get_nvt_csot_esd_status();
+#endif
 
 	len = strlen(panel_cfg);
 	ctrl_pdata->panel_data.dsc_cfg_np_name[0] = '\0';
@@ -2992,6 +3129,12 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 			 __func__, __LINE__);
 		goto end;
 	} else {
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+		lcm_ffbm_mode = strnstr(panel_cfg, "ffbm", len);
+		if (lcm_ffbm_mode){
+			pr_info("[ffbm] we are in ffbm mode now!\n");
+		}
+#endif
 		/* check if any override parameters are set */
 		pinfo->sim_panel_mode = 0;
 		override_cfg = strnstr(panel_cfg, "#" OVERRIDE_CFG, len);
@@ -3050,6 +3193,12 @@ static struct device_node *mdss_dsi_find_panel_of_node(
 		} else if (!strcmp(panel_name, "qcom,mdss_dsi_ft8716_fhd_video")) {
 			panel_suspend_reset_flag = 3;
 			panel_suspend_power_flag = 3;
+		}
+#endif
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+		if (!strcmp(panel_name, "qcom,mdss_dsi_nt36672_csot_fhdplus_video_e7")){
+			nvt_csot_esd_status->nova_csot_panel = true;
+			ESD_interval = 500;
 		}
 #endif
 		mdss_node = of_parse_phandle(pdev->dev.of_node,
@@ -3366,6 +3515,9 @@ static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	change_par_ctrl = ctrl_pdata;
+#endif
 	platform_set_drvdata(pdev, ctrl_pdata);
 
 	util = mdss_get_util_intf();
@@ -3636,6 +3788,9 @@ static void mdss_dsi_res_deinit(struct platform_device *pdev)
 			devm_kfree(&pdev->dev, dsi_res->ctrl_pdata[i]);
 		}
 	}
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	change_par_ctrl = NULL;
+#endif
 
 	sdata = dsi_res->shared_data;
 	if (!sdata)
@@ -4240,6 +4395,49 @@ static int mdss_dsi_parse_ctrl_params(struct platform_device *ctrl_pdev,
 
 }
 
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+u32 te_count = 60;
+
+static irqreturn_t te_interrupt(int irq, void *data)
+{
+	disable_irq_nosync(irq);
+	te_count++;
+	enable_irq(irq);
+	return IRQ_HANDLED;
+}
+
+int init_te_irq(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
+{
+	int rc = -1;
+	int irq;
+	if (gpio_is_valid(ctrl_pdata->disp_te_gpio)) {
+		rc = gpio_request(ctrl_pdata->disp_te_gpio, "te-gpio");
+		if (rc < 0) {
+			pr_err("%s: gpio_request fail rc=%d\n", __func__,rc);
+			return rc;
+		}
+		rc = gpio_direction_input(ctrl_pdata->disp_te_gpio);
+		if (rc < 0) {
+				pr_err("%s: gpio_direction_input fail rc=%d\n", __func__,rc);
+				return rc;
+		}
+		irq = gpio_to_irq(ctrl_pdata->disp_te_gpio);
+		pr_err("%s:liujia  irq = %d\n", __func__, irq);
+		rc = request_threaded_irq(irq, te_interrupt, NULL,
+			IRQF_TRIGGER_RISING|IRQF_ONESHOT,
+			"te-irq", ctrl_pdata);
+		if (rc < 0) {
+			pr_err("%s: request_irq fail rc=%d\n",__func__, rc);
+			return rc;
+		}
+	} else {
+		pr_err("%s:liujia irq gpio not provided\n",__func__);
+		return rc;
+	}
+		return 0;
+}
+#endif
+
 static int mdss_dsi_parse_gpio_params(struct platform_device *ctrl_pdev,
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 {
@@ -4412,6 +4610,11 @@ int dsi_panel_device_register(struct platform_device *ctrl_pdev,
 	if (ctrl_pdata->status_mode == ESD_REG ||
 			ctrl_pdata->status_mode == ESD_REG_NT35596)
 		ctrl_pdata->check_status = mdss_dsi_reg_status_check;
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	else if (ctrl_pdata->status_mode == ESD_TE_NT35596)
+		{ctrl_pdata->check_status = mdss_dsi_TE_NT35596_check;
+	         init_te_irq(ctrl_pdata); }
+#endif
 	else if (ctrl_pdata->status_mode == ESD_BTA)
 		ctrl_pdata->check_status = mdss_dsi_bta_status_check;
 

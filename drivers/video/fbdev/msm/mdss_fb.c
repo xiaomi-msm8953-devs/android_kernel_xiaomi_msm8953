@@ -1270,6 +1270,9 @@ static int mdss_fb_init_panel_modes(struct msm_fb_data_type *mfd,
 	return 0;
 }
 
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+static int ffbm_first_close_bl;
+#endif
 static int mdss_fb_probe(struct platform_device *pdev)
 {
 	struct msm_fb_data_type *mfd = NULL;
@@ -1368,6 +1371,14 @@ static int mdss_fb_probe(struct platform_device *pdev)
 	fbi_list[fbi_list_index++] = fbi;
 
 	platform_set_drvdata(pdev, mfd);
+
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+	if (strnstr(saved_command_line, "androidboot.mode=ffbm-01",
+			strlen(saved_command_line))) {
+		ffbm_first_close_bl = true;
+		pr_err("We are in ffbm-01 mode!\n");
+	}
+#endif
 
 	rc = mdss_fb_register(mfd);
 	if (rc)
@@ -1821,6 +1832,12 @@ void mdss_fb_set_backlight(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 		 */
 		if (mfd->bl_level_scaled == temp) {
 			mfd->bl_level = bkl_lvl;
+#ifdef CONFIG_MACH_XIAOMI_VINCE
+		if ((0 == temp) && (ffbm_first_close_bl == true)) {
+			pdata->set_backlight(pdata, temp);
+			ffbm_first_close_bl = false;
+		}
+#endif
 		} else {
 			if (mfd->bl_level != bkl_lvl)
 				bl_notify_needed = true;
@@ -2214,6 +2231,15 @@ static int mdss_fb_blank(int blank_mode, struct fb_info *info)
 	start = ktime_get();
 
 #ifdef CONFIG_MACH_XIAOMI_TISSOT
+	if ((info == prim_fbi) && (blank_mode == FB_BLANK_UNBLANK) &&
+		atomic_read(&prim_panel_is_on)) {
+		atomic_set(&prim_panel_is_on, false);
+		__pm_relax(&prim_panel_wakelock);
+		cancel_delayed_work_sync(&prim_panel_work);
+		return 0;
+	}
+#endif
+#ifdef CONFIG_MACH_XIAOMI_VINCE
 	if ((info == prim_fbi) && (blank_mode == FB_BLANK_UNBLANK) &&
 		atomic_read(&prim_panel_is_on)) {
 		atomic_set(&prim_panel_is_on, false);
@@ -2915,6 +2941,14 @@ static int mdss_fb_register(struct msm_fb_data_type *mfd)
 					fbi->var.xres, fbi->var.yres);
 
 #ifdef CONFIG_MACH_XIAOMI_TISSOT
+	if (panel_info->is_prim_panel) {
+		prim_fbi = fbi;
+		atomic_set(&prim_panel_is_on, false);
+		INIT_DELAYED_WORK(&prim_panel_work, prim_panel_off_delayed_work);
+		wakeup_source_init(&prim_panel_wakelock, "prim_panel_wakelock");
+	}
+#endif
+#ifdef CONFIG_MACH_XIAOMI_VINCE
 	if (panel_info->is_prim_panel) {
 		prim_fbi = fbi;
 		atomic_set(&prim_panel_is_on, false);
