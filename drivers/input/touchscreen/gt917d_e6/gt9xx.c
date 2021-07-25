@@ -21,6 +21,9 @@
 
 #include <linux/irq.h>
 #include "gt9xx.h"
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+#include <linux/input/tp_common.h>
+#endif
 
 #if GTP_ICS_SLOT_REPORT
 	#include <linux/input/mt.h>
@@ -2676,6 +2679,33 @@ static struct attribute_group goodix_attribute_group =
 	.attrs = goodix_attributes
 };
 
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+static ssize_t double_tap_show(struct kobject *kobj,
+                              struct kobj_attribute *attr, char *buf)
+{
+       return sprintf(buf, "%d\n", gesture_enable_flag);
+}
+
+static ssize_t double_tap_store(struct kobject *kobj,
+                               struct kobj_attribute *attr, const char *buf,
+                               size_t count)
+{
+       int rc, val;
+
+       rc = kstrtoint(buf, 10, &val);
+       if (rc)
+               return -EINVAL;
+
+       gesture_enable_flag = !!val;
+       return count;
+}
+
+static struct tp_common_ops double_tap_ops = {
+       .show = double_tap_show,
+       .store = double_tap_store
+};
+#endif
+
 /************************************************************************
 * Name: goodix_create_sysfs
 * Brief:  create sysfs for debug
@@ -3017,6 +3047,14 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
 #if  GTP_ITO_CAT_Data
 	create_gtp_data_dump_proc();
 #endif
+
+	#ifdef CONFIG_TOUCHSCREEN_COMMON
+	ret = tp_common_set_double_tap_ops(&double_tap_ops);
+	if (ret < 0) {
+		GTP_ERROR("%s: Failed to create double_tap node err=%d\n",
+			__func__, ret);
+	}
+	#endif
 
 	if (!ret && ts->ts_pinctrl) {
 		ret = pinctrl_select_state(ts->ts_pinctrl, ts->eint_output_low);
