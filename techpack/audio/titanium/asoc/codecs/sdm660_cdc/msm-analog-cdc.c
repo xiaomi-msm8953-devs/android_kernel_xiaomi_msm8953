@@ -32,6 +32,11 @@
 #include "sdm660-cdc-irq.h"
 #include "msm-analog-cdc-regmap.h"
 #include "../wcd-mbhc-v2-api.h"
+#ifdef CONFIG_MACH_XIAOMI_YSL
+#include <linux/gpio.h>
+#include "../../spk_ext_pa_mtp.h"
+#include "../../msm8952.h"
+#endif
 
 #define DRV_NAME "pmic_analog_codec"
 #define SDM660_CDC_RATES (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 |\
@@ -1890,6 +1895,15 @@ static const char * const msm_anlg_cdc_boost_option_ctrl_text[] = {
 static const struct soc_enum msm_anlg_cdc_boost_option_ctl_enum[] = {
 		SOC_ENUM_SINGLE_EXT(4, msm_anlg_cdc_boost_option_ctrl_text),
 };
+
+#ifdef CONFIG_MACH_XIAOMI_YSL
+static const char * const msm_external_spk_pa_text[] = {
+		"OFF", "ON"};
+static const struct soc_enum msm_external_spk_pa_enum[] = {
+		SOC_ENUM_SINGLE_EXT(2, msm_external_spk_pa_text),
+};
+#endif
+
 static const char * const msm_anlg_cdc_spk_boost_ctrl_text[] = {
 		"DISABLE", "ENABLE"};
 static const struct soc_enum msm_anlg_cdc_spk_boost_ctl_enum[] = {
@@ -1928,6 +1942,11 @@ static const struct snd_kcontrol_new msm_anlg_cdc_snd_controls[] = {
 
 	SOC_ENUM_EXT("EAR PA Gain", msm_anlg_cdc_ear_pa_gain_enum[0],
 		msm_anlg_cdc_pa_gain_get, msm_anlg_cdc_pa_gain_put),
+
+#ifdef CONFIG_MACH_XIAOMI_YSL
+	SOC_ENUM_EXT("Speaker PA Open", msm_external_spk_pa_enum[0],
+		get_external_spk_pa, set_external_spk_pa),
+#endif
 
 	SOC_ENUM_EXT("Speaker Boost", msm_anlg_cdc_spk_boost_ctl_enum[0],
 		msm_anlg_cdc_spk_boost_get, msm_anlg_cdc_spk_boost_set),
@@ -2216,6 +2235,11 @@ static int msm_anlg_cdc_codec_enable_spk_pa(struct snd_soc_dapm_widget *w,
 	struct sdm660_cdc_priv *sdm660_cdc =
 					snd_soc_codec_get_drvdata(codec);
 
+#ifdef CONFIG_MACH_XIAOMI_YSL
+	struct msm_asoc_mach_data *pdata = NULL;
+	pdata = snd_soc_card_get_drvdata(codec->component.card);
+#endif
+
 	dev_dbg(codec->dev, "%s %d %s\n", __func__, event, w->name);
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
@@ -2281,8 +2305,19 @@ static int msm_anlg_cdc_codec_enable_spk_pa(struct snd_soc_dapm_widget *w,
 		msm_anlg_cdc_dig_notifier_call(codec,
 					       DIG_CDC_EVENT_RX3_MUTE_OFF);
 		snd_soc_update_bits(codec, w->reg, 0x80, 0x80);
+#ifdef CONFIG_MACH_XIAOMI_YSL
+		pdata->pa_is_on = 0;
+		pr_debug("At %d In (%s), will run msm_spk_ext_pa_ctrl, true\n", __LINE__, __FUNCTION__);
+		schedule_delayed_work(&pdata->pa_gpio_work, msecs_to_jiffies(40));
+#endif
 		break;
 	case SND_SOC_DAPM_PRE_PMD:
+#ifdef CONFIG_MACH_XIAOMI_YSL
+		cancel_delayed_work_sync(&pdata->pa_gpio_work);
+		msm_spk_ext_pa_ctrl(pdata, true);
+		pr_debug("At %d In (%s), close pa, spk_ext_pa_gpio_lc=%d\n", __LINE__, __FUNCTION__, gpio_get_value(pdata->spk_ext_pa_gpio_lc));
+		pdata->pa_is_on = 0;
+#endif
 		msm_anlg_cdc_dig_notifier_call(codec,
 					       DIG_CDC_EVENT_RX3_MUTE_ON);
 		/*
@@ -3245,6 +3280,11 @@ static int msm_anlg_cdc_codec_enable_lo_pa(struct snd_soc_dapm_widget *w,
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 
+#ifdef CONFIG_MACH_XIAOMI_YSL
+	struct msm_asoc_mach_data *pdata = NULL;
+	pdata = snd_soc_card_get_drvdata(codec->component.card);
+#endif
+
 	dev_dbg(codec->dev, "%s: %d %s\n", __func__, event, w->name);
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
@@ -3252,6 +3292,12 @@ static int msm_anlg_cdc_codec_enable_lo_pa(struct snd_soc_dapm_widget *w,
 				       DIG_CDC_EVENT_RX3_MUTE_OFF);
 		break;
 	case SND_SOC_DAPM_PRE_PMD:
+#ifdef CONFIG_MACH_XIAOMI_YSL
+		cancel_delayed_work_sync(&pdata->pa_gpio_work);
+		msm_spk_ext_pa_ctrl(pdata, true);
+		pr_debug("At %d In (%s), close pa, spk_ext_pa_gpio_lc=%d\n", __LINE__, __FUNCTION__, gpio_get_value(pdata->spk_ext_pa_gpio_lc));
+		pdata->pa_is_on = 0;
+#endif
 		msm_anlg_cdc_dig_notifier_call(codec,
 				       DIG_CDC_EVENT_RX3_MUTE_ON);
 		break;
