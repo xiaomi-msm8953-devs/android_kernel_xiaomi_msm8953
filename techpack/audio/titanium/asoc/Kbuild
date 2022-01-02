@@ -120,6 +120,9 @@ endif
 # for SDM450 internal codec sound card driver
 ifdef CONFIG_SND_SOC_SDM450
 	MACHINE_OBJS += msm8952.o
+	ifdef CONFIG_MACH_XIAOMI_YSL
+		MACHINE_OBJS += spk_ext_pa_mtp.o
+	endif
 endif
 
 ifdef CONFIG_SND_SOC_MSM8909
