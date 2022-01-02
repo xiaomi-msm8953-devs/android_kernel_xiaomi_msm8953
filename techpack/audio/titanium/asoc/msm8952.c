@@ -31,6 +31,9 @@
 #include "msm-pcm-routing-v2.h"
 #include "codecs/msm-cdc-pinctrl.h"
 #include "msm8952.h"
+#ifdef CONFIG_MACH_XIAOMI_YSL
+#include "spk_ext_pa_mtp.h"
+#endif
 
 #define DRV_NAME "msm8952-asoc-wcd"
 
@@ -3392,6 +3395,13 @@ parse_mclk_freq:
 	pdata->lb_mode = false;
 	msm8952_dt_parse_cap_info(pdev, pdata);
 
+#ifdef CONFIG_MACH_XIAOMI_YSL
+	pr_debug("At %d In (%s), will run msm_setup_spk_ext_pa\n", __LINE__, __FUNCTION__);
+	ret = msm_setup_spk_ext_pa(pdev, pdata);
+	if (ret)
+		pr_debug("%s, msm_setup_spk_ext_pa error!\n", __func__);
+#endif
+
 	card->dev = &pdev->dev;
 	platform_set_drvdata(pdev, card);
 	snd_soc_card_set_drvdata(card, pdata);
@@ -3400,6 +3410,9 @@ parse_mclk_freq:
 		goto err;
 	/* initialize timer */
 	INIT_DELAYED_WORK(&pdata->disable_int_mclk0_work, msm8952_disable_mclk);
+#ifdef CONFIG_MACH_XIAOMI_YSL
+	INIT_DELAYED_WORK(&pdata->pa_gpio_work, msm_spk_ext_pa_delayed);
+#endif
 	mutex_init(&pdata->cdc_int_mclk0_mutex);
 	atomic_set(&pdata->int_mclk0_rsc_ref, 0);
 	if (card->aux_dev) {
