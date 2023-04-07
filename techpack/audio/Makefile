@@ -1,3 +1,4 @@
+ifneq ($(or $(CONFIG_ARCH_SDM450),$(CONFIG_ARCH_MSM8953)),y)
 # auto-detect subdirs
 ifeq ($(CONFIG_ARCH_SDM845), y)
 include $(srctree)/techpack/audio/config/sdm845auto.conf
@@ -39,3 +40,6 @@ obj-y += asoc/
 obj-y += dsp/
 obj-y += ipc/
 obj-y += soc/
+else
+obj-y += titanium/
+endif
