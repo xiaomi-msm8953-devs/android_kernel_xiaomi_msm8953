@@ -3293,13 +3293,8 @@ static int dwc3_msm_vbus_notifier(struct notifier_block *nb,
 	struct dwc3_msm *mdwc = container_of(nb, struct dwc3_msm, vbus_nb);
 	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
 
-	if (!mdwc->usb_data_enabled) {
-		if (event)
-			dwc3_msm_gadget_vbus_draw(mdwc, 500);
-		else
-			dwc3_msm_gadget_vbus_draw(mdwc, 0);
+	if (!mdwc->usb_data_enabled)
 		return NOTIFY_DONE;
-	}
 
 	dev_dbg(mdwc->dev, "vbus:%ld event received\n", event);
 
@@ -4714,8 +4709,7 @@ static void dwc3_otg_sm_work(struct work_struct *w)
 			mdwc->drd_state = DRD_STATE_PERIPHERAL;
 			work = 1;
 		} else {
-			if (mdwc->usb_data_enabled)
-				dwc3_msm_gadget_vbus_draw(mdwc, 0);
+			dwc3_msm_gadget_vbus_draw(mdwc, 0);
 			dev_dbg(mdwc->dev, "Cable disconnected\n");
 #ifdef CONFIG_VXR200_XR_MISC
 			vxr7200_usb_event(false);
