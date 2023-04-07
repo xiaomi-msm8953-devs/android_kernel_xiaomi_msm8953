@@ -1,19 +1,7 @@
 # auto-detect subdirs
-ifeq ($(CONFIG_ARCH_SDM845), y)
-include $(srctree)/techpack/audio/titanium/config/sdm845auto.conf
-export $(shell sed 's/=.*//' $(srctree)/techpack/audio/titanium/config/sdm845auto.conf)
-endif
 ifeq ($(CONFIG_ARCH_SDM450), y)
 include $(srctree)/techpack/audio/titanium/config/sdm450auto.conf
 export $(shell sed 's/=.*//' $(srctree)/techpack/audio/titanium/config/sdm450auto.conf)
-endif
-ifeq ($(CONFIG_ARCH_SDM670), y)
-include $(srctree)/techpack/audio/titanium/config/sdm670auto.conf
-export $(shell sed 's/=.*//' $(srctree)/techpack/audio/titanium/config/sdm670auto.conf)
-endif
-ifeq ($(CONFIG_ARCH_SDXPOORWILLS), y)
-include $(srctree)/techpack/audio/titanium/config/sdxpoorwillsauto.conf
-export $(shell sed 's/=.*//' $(srctree)/techpack/audio/titanium/config/sdxpoorwillsauto.conf)
 endif
 ifeq ($(CONFIG_ARCH_MSM8953), y)
 include $(srctree)/techpack/audio/titanium/config/msm8953auto.conf
@@ -30,21 +18,9 @@ LINUXINCLUDE    += \
                 -I$(srctree)/techpack/audio/titanium/include/uapi \
                 -I$(srctree)/techpack/audio/titanium/include
 
-ifeq ($(CONFIG_ARCH_SDM845), y)
-LINUXINCLUDE    += \
-                -include $(srctree)/techpack/audio/titanium/config/sdm845autoconf.h
-endif
 ifeq ($(CONFIG_ARCH_SDM450), y)
 LINUXINCLUDE    += \
                 -include $(srctree)/techpack/audio/titanium/config/sdm450autoconf.h
-endif
-ifeq ($(CONFIG_ARCH_SDM670), y)
-LINUXINCLUDE    += \
-                -include $(srctree)/techpack/audio/titanium/config/sdm710autoconf.h
-endif
-ifeq ($(CONFIG_ARCH_SDXPOORWILLS), y)
-LINUXINCLUDE    += \
-                -include $(srctree)/techpack/audio/titanium/config/sdxpoorwillsautoconf.h
 endif
 ifeq ($(CONFIG_ARCH_MSM8953), y)
 LINUXINCLUDE    += \
