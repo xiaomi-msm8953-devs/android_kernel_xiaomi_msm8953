@@ -134,6 +134,15 @@ endif
 ifdef CONFIG_SND_SOC_MSM_STUB
 	STUB_OBJS += msm_stub.o
 endif
+
+ifdef CONFIG_SND_SOC_TAS2557
+        TAS2557_OBJS += tas2557-core.o
+        TAS2557_OBJS += tas2557-misc.o
+        TAS2557_OBJS += tas2557-codec.o
+        TAS2557_OBJS += tas2557-regmap.o
+        TAS2557_OBJS += tiload.o
+endif
+
 ifdef CONFIG_SND_SOC_WCD_SPI
 	SPI_OBJS += wcd-spi.o
 endif
@@ -226,6 +235,9 @@ max98927_dlkm-y := $(MAX98927_OBJS)
 
 obj-$(CONFIG_SND_SOC_MSM_STUB) += stub_dlkm.o
 stub_dlkm-y := $(STUB_OBJS)
+
+obj-$(CONFIG_SND_SOC_TAS2557) += tas2557_dlkm.o
+tas2557_dlkm-y := $(TAS2557_OBJS)
 
 obj-$(CONFIG_SND_SOC_WCD_CPE) += wcd_cpe_dlkm.o
 wcd_cpe_dlkm-y := $(WCD_CPE_OBJS)
