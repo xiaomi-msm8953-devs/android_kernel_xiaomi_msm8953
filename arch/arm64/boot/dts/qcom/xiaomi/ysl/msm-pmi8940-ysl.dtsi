@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2016-2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2019 XiaoMi, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&spmi_bus {
+	qcom,pmi8940@2 {
+		qpnp_smbcharger: qcom,qpnp-smbcharger {
+			qcom,iterm-ma = <200>;
+			qcom,float-voltage-mv = <4400>;
+			qcom,resume-delta-mv = <50>;
+			qcom,thermal-mitigation = <2000 1000 800 500 200 0>;
+			qcom,float-voltage-comp = <0x10>; /*add comp to 4.1v*/
+			dpdm-supply = <&qusb_phy>;
+			/delete-property/ qcom,external-typec;
+			/delete-property/ qcom,typec-psy-name;
+			/delete-property/ qcom,autoadjust-vfloat;
+			qcom,fastchg-current-ma = <2000>;
+			qcom,dc-psy-type = "Mains";
+			qcom,dc-psy-ma = <2000>;
+			qcom,low-volt-dcin;
+			qcom,bmd-pin-src = "bpd_thm_id";
+			qcom,charge-unknown-battery;
+		};
+
+		qpnp_fg: qcom,fg {
+			qcom,resume-soc = <99>;
+			qcom,resume-soc-raw = <254>;
+			qcom,hold-soc-while-full;
+			qcom,fg-delta-soc = <1>; //fg soc update frequency
+			qcom,fg-iterm-ma = <400>;
+			qcom,fg-chg-iterm-ma = <200>; /*default 100ma*/
+			qcom,fg-cutoff-voltage-mv = <3400>;
+			qcom,fg-cc-cv-threshold-mv = <4390>;
+			qcom,vbat-estimate-diff-mv = <150>;
+			qcom,thermal-coefficients = [C8 86 C1 50 D3 37];
+			/delete-property/ qcom,capacity-learning-on;
+		};
+	};
+
+	qcom,pmi8940@3 {
+		wled: qcom,leds@d800 {
+			qcom,en-cabc;
+		};
+
+		flash_led: qcom,leds@d300 {
+			pmi8940_switch: qcom,switch {
+				qcom,led-name = "flashlight";
+			};
+		};
+	};
+};
