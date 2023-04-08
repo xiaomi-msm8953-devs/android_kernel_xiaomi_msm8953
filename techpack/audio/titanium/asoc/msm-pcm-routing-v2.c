@@ -19601,7 +19601,7 @@ static const struct snd_soc_dapm_route intercon[] = {
 
 	{"QUAT_MI2S_RX_DL_HL", "Switch", "QUAT_MI2S_DL_HL"},
 	{"QUAT_MI2S_RX", NULL, "QUAT_MI2S_RX_DL_HL"},
-#ifdef CONFIG_SND_SOC_MAX98927
+#if defined(CONFIG_SND_SOC_MAX98927) || defined(CONFIG_SND_SOC_TAS2557)
 	{"QUIN_MI2S_RX_DL_HL", "Switch", "PRI_MI2S_DL_HL"},
 #else
 	{"QUIN_MI2S_RX_DL_HL", "Switch", "QUIN_MI2S_DL_HL"},
@@ -19617,7 +19617,7 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"PRI_MI2S_RX", NULL, "PRI_MI2S_DL_HL"},
 	{"TERT_MI2S_RX", NULL, "TERT_MI2S_DL_HL"},
 	{"QUAT_MI2S_UL_HL", NULL, "QUAT_MI2S_TX"},
-#ifdef CONFIG_SND_SOC_MAX98927
+#if defined(CONFIG_SND_SOC_MAX98927) || defined(CONFIG_SND_SOC_TAS2557)
 	{"QUIN_MI2S_UL_HL", NULL, "QUIN_MI2S_TX"},
 #endif
 
