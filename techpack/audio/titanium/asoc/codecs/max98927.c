@@ -2275,8 +2275,7 @@ static struct snd_soc_dai_driver max98927_dai[] = {
 static int max98927_probe(struct snd_soc_codec *codec)
 {
 	struct max98927_priv *max98927 = snd_soc_codec_get_drvdata(codec);
-	struct snd_soc_dapm_context *dapm = &codec->dapm;
-	/* struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(codec); */
+	struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(codec);
 
 	pr_info("%s: enter\n", __func__);
 
