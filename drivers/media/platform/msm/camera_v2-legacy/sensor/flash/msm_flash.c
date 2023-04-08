@@ -103,6 +103,10 @@ static struct led_classdev msm_torch_led[MAX_LED_TRIGGERS] = {
 	},
 };
 
+#ifdef CONFIG_MACH_XIAOMI_YSL
+static int msm_torch_led_num;
+#endif
+
 static int32_t msm_torch_create_classdev(struct platform_device *pdev,
 				void *data)
 {
@@ -121,16 +125,27 @@ static int32_t msm_torch_create_classdev(struct platform_device *pdev,
 			torch_trigger = fctrl->torch_trigger[i];
 			CDBG("%s:%d msm_torch_brightness_set for torch %d",
 				__func__, __LINE__, i);
+#ifdef CONFIG_MACH_XIAOMI_YSL
+			msm_torch_brightness_set(&msm_torch_led[msm_torch_led_num + i],
+#else
 			msm_torch_brightness_set(&msm_torch_led[i],
+#endif
 				LED_OFF);
 
 			rc = led_classdev_register(&pdev->dev,
+#ifdef CONFIG_MACH_XIAOMI_YSL
+				&msm_torch_led[msm_torch_led_num + i]);
+#else
 				&msm_torch_led[i]);
+#endif
 			if (rc) {
 				pr_err("Failed to register %d led dev. rc = %d\n",
 						i, rc);
 				return rc;
 			}
+#ifdef CONFIG_MACH_XIAOMI_YSL
+			msm_torch_led_num++;
+#endif
 		} else {
 			pr_err("Invalid fctrl->torch_trigger[%d]\n", i);
 			return -EINVAL;
@@ -513,6 +528,10 @@ static int32_t msm_flash_init(
 			return rc;
 		}
 	}
+
+#ifdef CONFIG_MACH_XIAOMI_YSL
+	flash_ctrl->func_tbl->camera_flash_off(flash_ctrl, NULL);
+#endif
 
 	flash_ctrl->flash_state = MSM_CAMERA_FLASH_INIT;
 
