@@ -550,6 +550,11 @@ void wcd_mbhc_hs_elec_irq(struct wcd_mbhc *mbhc, int irq_type,
 }
 EXPORT_SYMBOL(wcd_mbhc_hs_elec_irq);
 
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+extern int ext_pa_gpio;
+extern int ext_pa_status;
+#endif
+
 void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 				enum snd_jack_types jack_type)
 {
@@ -606,6 +611,9 @@ void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 		hphlocp_off_report(mbhc, SND_JACK_OC_HPHL);
 		mbhc->current_plug = MBHC_PLUG_TYPE_NONE;
 		mbhc->force_linein = false;
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+		gpio_set_value(ext_pa_gpio, 0);
+#endif
 	} else {
 		/*
 		 * Report removal of current jack type.
@@ -725,6 +733,11 @@ void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 				    (mbhc->hph_status | SND_JACK_MECHANICAL),
 				    WCD_MBHC_JACK_MASK);
 		wcd_mbhc_clr_and_turnon_hph_padac(mbhc);
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+		msleep(500);
+		if (ext_pa_status)
+			gpio_set_value(ext_pa_gpio, 1);
+#endif
 	}
 	pr_debug("%s: leave hph_status %x\n", __func__, mbhc->hph_status);
 }
