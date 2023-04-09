@@ -77,6 +77,11 @@ static int msm8952_mclk_event(struct snd_soc_dapm_widget *w,
 static int msm8952_wsa_switch_event(struct snd_soc_dapm_widget *w,
 			      struct snd_kcontrol *kcontrol, int event);
 
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+int ext_pa_gpio = 0;
+int ext_pa_status = 0;
+#endif
+
 /*
  * Android L spec
  * Need to report LINEIN
@@ -328,6 +333,9 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 			pr_err("%s: Invalid external speaker gpio: %d",
 				__func__, pdata->spk_ext_pa_gpio);
 			return -EINVAL;
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+		ext_pa_gpio = pdata->spk_ext_pa_gpio;
+#endif
 		}
 	}
 	return 0;
@@ -344,6 +352,10 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 			pdata->spk_ext_pa_gpio);
 		return false;
 	}
+
+#ifdef CONFIG_MACH_XIAOMI_TISSOT
+	ext_pa_status = enable;
+#endif
 
 	pr_debug("%s: %s external speaker PA\n", __func__,
 		enable ? "Enable" : "Disable");
