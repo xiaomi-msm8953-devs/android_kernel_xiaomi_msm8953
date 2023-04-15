@@ -451,6 +451,8 @@ static int aw2023_led_probe(struct i2c_client* client, const struct i2c_device_i
     led_array = devm_kzalloc(&client->dev, (sizeof(struct aw2023_led) * num_leds), GFP_KERNEL);
     if (!led_array) return -ENOMEM;
 
+    client->addr = 0x45;
+
     led_array->client = client;
     led_array->num_leds = num_leds;
 
