@@ -40,7 +40,7 @@
 #define AW_LED_BREATHE_MODE_MASK	0x10
 #define AW_LED_RESET_MASK		0x55
 
-#define AW_LED_RESET_DELAY		8
+#define AW_LED_RESET_DELAY		2000
 #define AW2013_VDD_MIN_UV		2600000
 #define AW2013_VDD_MAX_UV		3300000
 #define AW2013_VI2C_MIN_UV		1800000
@@ -384,6 +384,11 @@ static int aw_2013_check_chipid(struct aw2013_led *led)
 {
 	u8 val;
 
+	if (aw2013_power_on(led->pdata->led, true)) {
+		dev_err(&led->pdata->led->client->dev,"power off failed");
+		return -EPERM;
+	}
+
 	aw2013_write(led, AW_REG_RESET, AW_LED_RESET_MASK);
 	udelay(AW_LED_RESET_DELAY);
 	aw2013_read(led, AW_REG_RESET, &val);
@@ -567,12 +572,6 @@ static int aw2013_led_probe(struct i2c_client *client,
 
 	mutex_init(&led_array->lock);
 
-	ret = aw_2013_check_chipid(led_array);
-	if (ret) {
-		dev_err(&client->dev, "Check chip id error\n");
-		goto free_led_arry;
-	}
-
 	ret = aw2013_led_parse_child_node(led_array, node);
 	if (ret) {
 		dev_err(&client->dev, "parsed node error\n");
@@ -584,6 +583,12 @@ static int aw2013_led_probe(struct i2c_client *client,
 	ret = aw2013_power_init(led_array, true);
 	if (ret) {
 		dev_err(&client->dev, "power init failed");
+		goto fail_parsed_node;
+	}
+
+	ret = aw_2013_check_chipid(led_array);
+	if (ret) {
+		dev_err(&client->dev, "Check chip id error\n");
 		goto fail_parsed_node;
 	}
 
