@@ -1763,17 +1763,10 @@ static struct i2c_driver fts_ts_driver =
 *  Output:
 *  Return:
 *****************************************************************************/
-extern int tpselect;
 static int __init fts_ts_init(void)
 {
 	int ret = 0;
 
-	if (tpselect == 1) {
-
-	} else {
-
-	}
-	
 	FTS_FUNC_ENTER();
 	ret = i2c_add_driver(&fts_ts_driver);
 	if ( ret != 0 )
