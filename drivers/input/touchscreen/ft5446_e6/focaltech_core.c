@@ -1425,9 +1425,8 @@ static int fts_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 
 	#if FTS_TEST_EN
 	fts_test_init(client);
-	#endif
-
 	init_tp_selftest(client);
+	#endif
 
 	#if defined(CONFIG_FB)
 	data->fb_notif.notifier_call = fb_notifier_callback;
