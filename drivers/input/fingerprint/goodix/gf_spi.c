@@ -557,7 +557,7 @@ static irqreturn_t gf_irq(int irq, void *handle)
 	sendnlmsg(&temp);
 	if ((gf_dev->wait_finger_down == true) && (gf_dev->device_available == 1) && (gf_dev->fb_black == 1)) {
 		gf_dev->wait_finger_down = false;
-		schedule_work(&gf_dev->work);
+		// schedule_work(&gf_dev->work);
 	}
 #elif defined (GF_FASYNC)
 	struct gf_dev *gf_dev = &gf;
