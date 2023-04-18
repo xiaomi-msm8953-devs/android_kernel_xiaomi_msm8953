@@ -129,8 +129,6 @@ int fts_create_apk_debug_channel(struct i2c_client * client);
 void fts_release_apk_debug_channel(void);
 #endif
 
-int init_tp_selftest(struct i2c_client * client);
-
 /* ADB functions */
 #if FTS_SYSFS_NODE_EN
 int fts_create_sysfs(struct i2c_client *client);
@@ -153,6 +151,7 @@ int fts_esdcheck_get_status(void);
 #if FTS_TEST_EN
 int fts_test_init(struct i2c_client *client);
 int fts_test_exit(struct i2c_client *client);
+int init_tp_selftest(struct i2c_client * client);
 #endif
 
 /* Point Report Check*/

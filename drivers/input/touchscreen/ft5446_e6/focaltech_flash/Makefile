@@ -6,4 +6,3 @@
 
 
 obj-y += focaltech_upgrade_ft5446.o
-obj-y += focaltech_upgrade_test.o
