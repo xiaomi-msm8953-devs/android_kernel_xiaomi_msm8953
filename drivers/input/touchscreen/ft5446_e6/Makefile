@@ -14,4 +14,3 @@ obj-y   +=  focaltech_i2c.o
 obj-y   +=  focaltech_sensor.o
 obj-y   +=  focaltech_point_report_check.o
 obj-y   +=  focaltech_flash/
-obj-y   +=  focaltech_test/
