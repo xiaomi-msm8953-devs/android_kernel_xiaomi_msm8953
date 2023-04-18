@@ -281,7 +281,7 @@ extern char product_id[GTP_PRODUCT_ID_MAXSIZE];
 #define SUCCESS               1
 #define SWITCH_OFF            0
 #define SWITCH_ON             1
-#define GTP_ITO_TEST_SELF     1
+#define GTP_ITO_TEST_SELF     0
 #define GTP_ITO_CAT_Data      0
 
 
