@@ -1,0 +1,16 @@
+#
+# Focaltech Touchscreen driver configuration
+#
+
+config TOUCHSCREEN_FT5446_E6
+        bool "Focaltech Touchscreen"
+		depends on I2C
+		default n
+		help
+		  Say Y here if you have Focaltech touch panel.
+		  If unsure, say N.
+
+config TOUCHSCREEN_FTS_DIRECTORY
+    string "Focaltech ts directory name"
+    default "ft5446_e6"
+    depends on TOUCHSCREEN_FT5446_E6
