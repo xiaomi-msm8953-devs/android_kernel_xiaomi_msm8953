@@ -19,11 +19,8 @@
 	firmware: firmware {
 		android {
 			fstab {
+	                        /delete-node/ vbmeta;
 				vendor {
-					status = "disable";
-				};
-				system {
-					fsmgr_flags = "wait,slotselect";
 					status = "disable";
 				};
 
