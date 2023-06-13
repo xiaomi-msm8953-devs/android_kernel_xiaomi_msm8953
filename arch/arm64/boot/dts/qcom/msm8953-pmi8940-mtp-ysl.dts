@@ -62,7 +62,7 @@
 		vcc-supply = <&pm8953_l5>;
 
 		aw2013,red {
-			aw2013,name = "red";
+			aw2013,name = "white";
 			aw2013,id = <0>;
 			aw2013,max-brightness = <255>;
 			aw2013,max-current = <1>;
@@ -80,7 +80,7 @@
 		vdd-supply = <&pm8953_l10>;
 
 		aw2023,red {
-			aw2023,name = "red";
+			aw2023,name = "white";
 			aw2023,id = <0>;
 			aw2023,imax = <3>;
 			aw2023,led-current = <7>;
