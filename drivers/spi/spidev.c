@@ -126,7 +126,7 @@ spidev_sync_write(struct spidev_data *spidev, size_t len)
 			.len		= len,
 			.delay_usecs	= 0,
 			.cs_change	= 0,
-			.speed_hz	= 960000.
+			.speed_hz	= 960000,
 		};
 	struct spi_message	m;
 
@@ -208,6 +208,16 @@ spidev_write(struct file *filp, const char __user *buf,
 	spidev = filp->private_data;
 
 	mutex_lock(&spidev->buf_lock);
+
+	if (!spidev->tx_buffer) {
+		spidev->tx_buffer = kmalloc(count, GFP_KERNEL);
+		if (!spidev->tx_buffer) {
+			dev_dbg(&spidev->spi->dev, "open/ENOMEM\n");
+			status = -ENOMEM;
+			goto write_unlock;
+		}
+	}
+
 	missing = copy_from_user(spidev->tx_buffer, buf, count);
 	if (missing == 0)
 		status = spidev_sync_write(spidev, count);
@@ -219,15 +229,6 @@ spidev_write(struct file *filp, const char __user *buf,
 
 write_unlock:
 	mutex_unlock(&spidev->buf_lock);
-
-	if (!spidev->tx_buffer) {
-		spidev->tx_buffer = kmalloc(count, GFP_KERNEL);
-		if (!spidev->tx_buffer) {
-			dev_dbg(&spidev->spi->dev, "open/ENOMEM\n");
-			status = -ENOMEM;
-			goto write_unlock;
-		}
-	}
 
 	return status;
 }
