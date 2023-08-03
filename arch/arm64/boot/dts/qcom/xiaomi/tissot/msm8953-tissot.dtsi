@@ -18,8 +18,8 @@
 / {
 	firmware: firmware {
 		android {
+			/delete-node/ vbmeta;
 			fstab {
-	                        /delete-node/ vbmeta;
 				vendor {
 					status = "disable";
 				};
