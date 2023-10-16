@@ -6157,7 +6157,7 @@ static struct platform_driver cpr_regulator_driver = {
  * This initialization function should be called in systems in which driver
  * registration ordering must be controlled precisely.
  */
-int __init cpr_regulator_init(void)
+int cpr_regulator_init(void)
 {
 	static bool initialized;
 
