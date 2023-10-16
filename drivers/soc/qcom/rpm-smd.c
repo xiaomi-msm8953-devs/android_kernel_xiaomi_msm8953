@@ -2195,7 +2195,7 @@ static struct platform_driver msm_rpm_device_driver = {
 	},
 };
 
-int __init msm_rpm_driver_init(void)
+int msm_rpm_driver_init(void)
 {
 	static bool registered;
 
