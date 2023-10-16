@@ -220,7 +220,7 @@ int msm_rpm_send_message_noirq(enum msm_rpm_set set, uint32_t rsc_type,
  *
  * returns 0 on success.
  */
-int __init msm_rpm_driver_init(void);
+int msm_rpm_driver_init(void);
 
 #else
 
@@ -300,7 +300,7 @@ static inline int msm_rpm_wait_for_ack_noirq(uint32_t msg_id)
 	return 0;
 }
 
-static inline int __init msm_rpm_driver_init(void)
+static inline int msm_rpm_driver_init(void)
 {
 	return 0;
 }

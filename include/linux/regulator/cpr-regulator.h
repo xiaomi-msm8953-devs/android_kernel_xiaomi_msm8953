@@ -18,11 +18,11 @@
 
 #ifdef CONFIG_REGULATOR_CPR
 
-int __init cpr_regulator_init(void);
+int cpr_regulator_init(void);
 
 #else
 
-static inline int __init cpr_regulator_init(void)
+static inline int cpr_regulator_init(void)
 {
 	return -ENODEV;
 }
