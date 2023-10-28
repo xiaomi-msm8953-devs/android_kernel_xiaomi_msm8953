@@ -31642,7 +31642,7 @@ void WDI_TransportChannelDebug
  @see
  @return none
 */
-void WDI_TransportKickDxe()
+void WDI_TransportKickDxe(void)
 {
    WDTS_ChannelKickDxe();
    return;
