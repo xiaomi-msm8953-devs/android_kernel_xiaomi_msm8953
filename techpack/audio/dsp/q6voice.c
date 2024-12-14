@@ -41,17 +41,6 @@
 #define CVP_VERSION_2 2
 #define GAIN_Q14_FORMAT(a) (a << 14)
 
-/* Checking for unsigned overflow is relatively easy without causing UB. */
- #define __unsigned_add_overflow(a, b, d) ({	\
-        typeof(a) __a = (a);                    \
-	typeof(b) __b = (b);			\
-	typeof(d) __d = (d);			\
-	(void) (&__a == &__b);			\
-	(void) (&__a == __d);			\
-	*__d = __a + __b;			\
-	*__d < __a;				\
-})
-
 enum {
 	VOC_TOKEN_NONE,
 	VOIP_MEM_MAP_TOKEN,
@@ -7508,8 +7497,8 @@ static int32_t qdsp_cvs_callback(struct apr_client_data *data, void *priv)
 
 		cvs_voc_pkt = v->shmem_info.sh_buf.buf[1].data;
 
-		if (__unsigned_add_overflow(cvs_voc_pkt[2],
-			(uint32_t)(3 * sizeof(uint32_t)), &tot_buf_sz)) {
+		if (__builtin_add_overflow(cvs_voc_pkt[2],
+				3 * sizeof(uint32_t), &tot_buf_sz)) {
 			pr_err("%s: integer overflow detected\n", __func__);
 			return -EINVAL;
 		}
